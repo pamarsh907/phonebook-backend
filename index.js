@@ -65,6 +65,13 @@ app.get('/api/persons/:id', (request, response) => {
 
 app.delete('/api/persons/:id', (request, response) => {
   const id = request.params.id
+
+  if(!persons.find(person => person.id === id)){
+    return response.status(400).json({ 
+      error: 'already been deleted' 
+    })
+  }
+
   persons = persons.filter(person => person.id !== id)
   response.status(204).end()
 })
@@ -103,6 +110,20 @@ app.post('/api/persons', (request, response) => {
   persons = persons.concat(person)
 
   response.json(person)
+})
+
+app.put('/api/persons/:id', (request, response) => {
+  const body = request.body
+
+  const newPerson = {
+    name: body.name,
+    number: body.number,
+    id: request.params.id
+  }
+
+  persons = persons.map(person => person.id === newPerson.id ? newPerson : person)
+
+  response.json(newPerson)
 })
 
 const unknownEndpoint = (request, response) => {
