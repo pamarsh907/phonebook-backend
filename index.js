@@ -66,12 +66,11 @@ app.get('/api/persons/:id', (request, response) => {
 app.delete('/api/persons/:id', (request, response) => {
   const id = request.params.id
   persons = persons.filter(person => person.id !== id)
-
   response.status(204).end()
 })
 
 const generateId = () => {
-  return  Math.floor(Math.random() * 10000) + 1;
+  return  toString(Math.floor(Math.random() * 10000) + 1);
 }
 
 app.post('/api/persons', (request, response) => {
@@ -94,7 +93,6 @@ app.post('/api/persons', (request, response) => {
       error: 'name must be unique' 
     })    
   }
-  //if name already exists
 
   const person = {
     name: body.name,
