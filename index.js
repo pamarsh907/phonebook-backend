@@ -40,21 +40,19 @@ app.get('/info', async (request, response) => {
     response.send(`<div>Phonebook has info for ${count} people</div><br/><div>${timeStamp}</div>`)
 })
 
-app.get('/api/persons/:id', (request, response) => {
+app.get('/api/persons/:id', (request, response, next) => {
   Person.findById(request.params.id)
-  .then(person => {
-    response.json(person => {
+    .then(person => {
       if (person) {
         response.json(person)
       } else {
         response.status(404).end()
       }
     })
-  .catch(error => next(error))
-  })
+    .catch(error => next(error))
 })
 
-app.delete('/api/persons/:id', (request, response) => {
+app.delete('/api/persons/:id', (request, response, next) => {
   Person.findByIdAndDelete(request.params.id)
     .then(result => {
       response.json(204).end()
@@ -87,7 +85,7 @@ app.post('/api/persons', (request, response) => {
   })
 })
 
-app.put('/api/persons/:id', (request, response) => {
+app.put('/api/persons/:id', (request, response, next) => {
   const { name, number } = request.body
 
   Person.findById(request.params.id)
