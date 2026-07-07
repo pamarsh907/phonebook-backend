@@ -1,84 +1,80 @@
+require('dotenv').config()
 const express = require('express')
+const Person = require('./models/person')
+
 const app = express()
 var morgan = require('morgan')
 
-const requestLogger = (request, response, next) => {
-  console.log('Method:', request.method)
-  console.log('Path:  ', request.path)
-  console.log('Body:  ', request.body)
-  console.log('---')
-  next()
-}
+// const requestLogger = (request, response, next) => {
+//   console.log('Method:', request.method)
+//   console.log('Path:  ', request.path)
+//   console.log('Body:  ', request.body)
+//   console.log('---')
+//   next()
+// }
 
 app.use(express.json())
 app.use(morgan('tiny'))
 app.use(express.static('dist'))
 
-let persons = [
-    { 
-      "id": "1",
-      "name": "Arto Hellas", 
-      "number": "040-123456"
-    },
-    { 
-      "id": "2",
-      "name": "Ada Lovelace", 
-      "number": "39-44-5323523"
-    },
-    { 
-      "id": "3",
-      "name": "Dan Abramov", 
-      "number": "12-43-234345"
-    },
-    { 
-      "id": "4",
-      "name": "Mary Poppendieck", 
-      "number": "39-23-6423122"
-    }
-]
 
 app.get('/', (request, response) => {
   response.send('<h1>Hello World!!!</h1>')
 })
 
 app.get('/api/persons', (request, response) => {
-  response.json(persons)
+  Person.find({}).then(people => {
+    response.json(people)
+  })
 })
 
-app.get('/info', (request, response) => {
-    const personCount = persons.length
+async function getCount() {
+  const docCount = await Person.estimatedDocumentCount({}).exec()
+  return docCount
+}
+
+app.get('/info', async (request, response) => {
+    const count = await Person.countDocuments({})
     const timeStamp = new Date()
 
-    response.send(`<div>Phonebook has info for ${personCount} people</div><br/><div>${timeStamp}</div>`)
+    response.send(`<div>Phonebook has info for ${count} people</div><br/><div>${timeStamp}</div>`)
 })
 
 app.get('/api/persons/:id', (request, response) => {
-    const id = request.params.id
-    const person = persons.find(person => person.id === id)
+  const id = request.params.id
+  const person = persons.find(person => person.id === id)
 
-    if (person) {
-        response.json(person)
-    } else {
-        response.status(404).end()
-    }
+  Person.findById(request.params.id).then(person => {
+    response.json(person)
+  })
+
+  // if (person) {
+  //     response.json(person)
+  // } else {
+  //     response.status(404).end()
+  // }
 })
 
 app.delete('/api/persons/:id', (request, response) => {
-  const id = request.params.id
+  Person.findByIdAndDelete(request.params.id).then(result => {
+    response.json(204).end()
+  })
 
-  if(!persons.find(person => person.id === id)){
-    return response.status(400).json({ 
-      error: 'already been deleted' 
-    })
-  }
+  // const id = request.params.id
 
-  persons = persons.filter(person => person.id !== id)
-  response.status(204).end()
+  // if(!persons.find(person => person.id === id)){
+  //   return response.status(400).json({ 
+  //     error: 'already been deleted' 
+  //   })
+  // }
+
+  // persons = persons.filter(person => person.id !== id)
+  // response.status(204).end()
 })
 
-const generateId = () => {
-  return String(Math.floor(Math.random() * 10000) + 1);
-}
+// const generateId = () => {
+//   return String(Math.floor(Math.random() * 10000) + 1);
+// }
 
 app.post('/api/persons', (request, response) => {
   const body = request.body
@@ -95,35 +91,48 @@ app.post('/api/persons', (request, response) => {
     })
   }
 
-  if (persons.map(person => person.name).includes(body.name)) {
-    return response.status(400).json({ 
-      error: 'name must be unique' 
-    })    
-  }
+  // if (persons.map(person => person.name).includes(body.name)) {
+  //   return response.status(400).json({ 
+  //     error: 'name must be unique' 
+  //   })    
+  // }
 
-  const person = {
+  // const person = {
+  //   name: body.name,
+  //   number: body.number,
+  //   id: generateId(),
+  // }
+
+  // persons = persons.concat(person)
+
+  // response.json(person)
+
+  const person = new Person({
     name: body.name,
     number: body.number,
-    id: generateId(),
-  }
+  })
 
-  persons = persons.concat(person)
-
-  response.json(person)
+  person.save().then(savedPerson => {
+    response.json(savedPerson)
+  })
 })
 
 app.put('/api/persons/:id', (request, response) => {
-  const body = request.body
+  const query = { id: request.params.id }
+  Person.findOneAndUpdate(query, { number: request.body.number }, { new: true})
+    .then(updatedPerson => response.json(updatedPerson))
 
-  const newPerson = {
-    name: body.name,
-    number: body.number,
-    id: request.params.id
-  }
+  // const body = request.body
 
-  persons = persons.map(person => person.id === newPerson.id ? newPerson : person)
+  // const newPerson = {
+  //   name: body.name,
+  //   number: body.number,
+  //   id: request.params.id
+  // }
 
-  response.json(newPerson)
+  // persons = persons.map(person => person.id === newPerson.id ? newPerson : person)
+
+  // response.json(newPerson)
 })
 
 const unknownEndpoint = (request, response) => {
