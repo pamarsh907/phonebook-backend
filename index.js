@@ -5,14 +5,6 @@ const Person = require('./models/person')
 const app = express()
 var morgan = require('morgan')
 
-// const requestLogger = (request, response, next) => {
-//   console.log('Method:', request.method)
-//   console.log('Path:  ', request.path)
-//   console.log('Body:  ', request.body)
-//   console.log('---')
-//   next()
-// }
-
 app.use(express.json())
 app.use(morgan('tiny'))
 app.use(express.static('dist'))
@@ -28,16 +20,11 @@ app.get('/api/persons', (request, response) => {
   })
 })
 
-async function getCount() {
-  const docCount = await Person.estimatedDocumentCount({}).exec()
-  return docCount
-}
-
 app.get('/info', async (request, response) => {
-    const count = await Person.countDocuments({})
-    const timeStamp = new Date()
+  const count = await Person.countDocuments({})
+  const timeStamp = new Date()
 
-    response.send(`<div>Phonebook has info for ${count} people</div><br/><div>${timeStamp}</div>`)
+  response.send(`<div>Phonebook has info for ${count} people</div><br/><div>${timeStamp}</div>`)
 })
 
 app.get('/api/persons/:id', (request, response, next) => {
@@ -54,7 +41,7 @@ app.get('/api/persons/:id', (request, response, next) => {
 
 app.delete('/api/persons/:id', (request, response, next) => {
   Person.findByIdAndDelete(request.params.id)
-    .then(result => {
+    .then(response => {
       response.json(204).end()
     })
     .catch(error => next(error))
@@ -64,14 +51,14 @@ app.post('/api/persons', (request, response, next) => {
   const body = request.body
 
   if (!body.name) {
-    return response.status(400).json({ 
-      error: 'name missing' 
+    return response.status(400).json({
+      error: 'name missing'
     })
   }
 
   if (!body.number) {
-    return response.status(400).json({ 
-      error: 'number missing' 
+    return response.status(400).json({
+      error: 'number missing'
     })
   }
 
@@ -83,9 +70,9 @@ app.post('/api/persons', (request, response, next) => {
   person.save().then(savedPerson => {
     response.json(savedPerson)
   })
-  .catch(error => {
-    next(error)
-  })
+    .catch(error => {
+      next(error)
+    })
 })
 
 app.put('/api/persons/:id', (request, response, next) => {
@@ -119,7 +106,7 @@ const errorHandler = (error, request, response, next) => {
   if (error.name === 'CastError') {
     return response.status(400).send({ error: 'malformatted id' })
   } else if (error.name === 'ValidationError') {
-    return response.status(400).json({ error: error.message }) 
+    return response.status(400).json({ error: error.message })
   }
 
   next(error)

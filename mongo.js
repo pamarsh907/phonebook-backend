@@ -1,5 +1,5 @@
 const mongoose = require('mongoose')
-const { log } = require('node:console')
+// const { log } = require('node:console')
 
 if (process.argv.length < 3) {
   console.log('give password as argument')
@@ -15,7 +15,7 @@ const url = `mongodb+srv://fullstackopen:${password}@cluster0.qnzenbx.mongodb.ne
 
 mongoose.set('strictQuery',false)
 
-require("node:dns/promises").setServers(["1.1.1.1", "8.8.8.8"]);
+require('node:dns/promises').setServers(['1.1.1.1', '8.8.8.8'])
 
 mongoose.connect(url, { family: 4 })
 
@@ -28,39 +28,25 @@ const Person = mongoose.model('Person', personSchema)
 
 //if one argument, list
 if (paramCount === 1) {
-    console.log('phonebook:')
-    
-    Person.find({}).then(result => {
+  console.log('phonebook:')
+
+  Person.find({}).then(result => {
     result.forEach(person => {
-        console.log(`${person.name} ${person.number}`)
+      console.log(`${person.name} ${person.number}`)
     })
     mongoose.connection.close()
-    })   
+  })
 }
 
 //if more arguments add
 if (paramCount === 3) {
-    const person = new Person({
+  const person = new Person({
     name: name,
     number: number,
-    })
+  })
 
-    person.save().then(result => {
+  person.save().then(() => {
     console.log(`added ${name} number ${number} to phonebook`)
     mongoose.connection.close()
-    })
+  })
 }
-
-// Note.find({}).then(result => {
-//   result.forEach(note => {
-//     console.log(note)
-//   })
-//   mongoose.connection.close()
-// })
-
-// Note.find({ important: true }).then(result => {
-//   result.forEach(note => {
-//     console.log(note)
-//   })
-//   mongoose.connection.close()
-// })
